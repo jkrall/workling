@@ -32,7 +32,7 @@ module Workling
   #   Workling::Remote.dispatcher = Workling::Remote::Runners::StarlingRunner.new
   #
   def self.default_runner
-    if RAILS_ENV == "test"
+    if RAILS_ENV == "test" || RAILS_ENV == "selenium"
       Workling::Remote::Runners::NotRemoteRunner.new
     elsif starling_installed?
       Workling::Remote::Runners::StarlingRunner.new
