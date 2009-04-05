@@ -41,7 +41,7 @@ module Workling
       
       # closes the memcache connection
       def close
-        self.connection.flush_all
+        # self.connection.flush_all
         self.connection.reset
       end
 
