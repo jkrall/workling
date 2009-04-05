@@ -7,11 +7,13 @@ require File.dirname(__FILE__) + '/../lib/workling/remote/invokers/threaded_poll
 require File.dirname(__FILE__) + '/../lib/workling/remote/invokers/eventmachine_subscriber'
 require File.dirname(__FILE__) + '/../lib/workling/routing/class_and_method_routing'
 
+puts "Loaded Rails "
+
 client = Workling::Remote.dispatcher.client
 invoker = Workling::Remote.invoker
 poller = invoker.new(Workling::Routing::ClassAndMethodRouting.new, client.class)
 
-puts '** Rails loaded.'
+puts "** Rails loaded in #{RAILS_ENV} mode"
 puts "** Starting #{ invoker }..."
 puts '** Use CTRL-C to stop.'
 
