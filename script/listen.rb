@@ -11,7 +11,9 @@ client = Workling::Remote.dispatcher.client
 invoker = Workling::Remote.invoker
 poller = invoker.new(Workling::Routing::ClassAndMethodRouting.new, client.class)
 
-puts "** Rails loaded in #{RAILS_ENV} mode"
+Dir.chdir(RAILS_ROOT)
+puts "** Rails loaded in #{RAILS_ENV} mode @ #{Time.now} "
+puts "** Current RAILS_ROOT: #{RAILS_ROOT}"
 puts "** Current Pwd: #{`pwd`}"
 puts "** Starting #{ invoker }..."
 puts '** Use CTRL-C to stop.'
