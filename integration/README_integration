@@ -1,0 +1,87 @@
+== Integration tests ==
+
+This directory contains integration tests for Workling. These test are supposed to verify the the front to end operation, including starting the workling daemon and interacting with queue servers etc. The tests are specified in a setup independent way and then run for every setup.
+
+=== Running Tests ===
+
+In order to run the integration tests use:
+
+ rake integration
+
+
+=== Adding Tests ===
+
+Integration tests work pretty much like normal tests, except that they are run for every setup defined. Add a test file in the integration/tests directory ending in _test.rb and then use the following construct to have your test run in all defined setups:
+
+  $setup_loader.each_setup do |setup|
+
+    # to make the output more readable add the setup.name to the name of your test
+    context "Test name for #{setup.name}" do
+
+      # make sure you have the following in your test
+      setup do
+        setup.setup_test
+      end
+
+      teardown do
+        setup.teardown_test
+      end
+
+
+      specify "should shoot for the moon" do
+        # test code goes here
+      end
+
+    end
+
+  end
+
+Any workers that are need for the integration tests should go into the integration/workers directory.
+
+The environment for the tests is as follows:
+ * There is a tmp directory which can be used for the tests. The setup.tmp_directory method provides access to this
+ * This tmp_directory is cleaned out before and after every tests by the setup and teardown methods
+ * The queue server and the daemon are spun up and down for every test in order to ensure a clean environment, if the current setup requires the daemon
+ * Rails will NOT be booted for the daemon, so the Active* goodness will not be available in the workers
+
+=== Adding a setup ===
+
+Different deployment options are encapsulated using different IntegrationSetup classes. Each setup has a name and some configuration options. They are specified by ruby files in the integration/setups directory. Note that a file can of course contain multiple setups but the names should be unique.
+
+A setup is specified using the following way:
+
+ $setup_loader.register("some name") do |s|
+
+   s.run_daemon               # if this is present then the daemon will be spun up, all runners except for the Spawn and BackgroundJob runners need this setting
+   s.client ClientClass       # specify which client class is used, needs to be a class not a string
+   s.invoker InvokerClass     # specify which invoker class is used, needs to be a class not a string
+                              # Both settings are used for configuring both the dispatching side as well as the daemon
+
+
+   # the config setting is optional, if it is present it should give a hash similar to what the parsed YAML
+   # would be. If this is given then the workling.yml file will not be parsed on the dispatch side
+   s.config do
+     { :listens_on => "localhost:22122" }
+   end
+
+   # the guard block makes sure that the required prerequisites are present
+   # you should make sure that the required queue server is installed and so on
+   # in order to prevent spurious failures
+   s.guard do
+     Workling::Clients::MemcacheQueueClient.installed?
+   end
+
+   # This is run for every specify block and it should spin up the queue server if required.
+   # if the block is given it will be run before the daemon is launched
+   s.setup_each do
+     `starling -P #{s.tmp_directory}/starling.pid -d`
+   end
+
+   # This is run for every specify block and it should spin down the queue server if it was started.
+   # if it is given it will be called after the daemon is stopped
+   s.teardown_each do
+     `kill #{File.read("#{s.tmp_directory}/starling.pid")}`
+   end
+
+ end
+

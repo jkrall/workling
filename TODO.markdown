@@ -14,6 +14,7 @@
 * look into create method. is this being called more often than intended?
 * add some monit and god scripts as starters
 * try to catch more user setup errors which lead to worker code not being called
+* add json as a marshaling option for the amqp client. 
 
 # Todos for 1.0
 

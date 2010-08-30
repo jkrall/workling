@@ -12,6 +12,15 @@ Rake::TestTask.new(:test) do |t|
   t.verbose = true
 end
 
+
+desc 'Run the integration tests'
+Rake::TestTask.new(:integration) do |t|
+  t.libs << 'lib'
+  t.pattern = 'integration/tests/*_test.rb'
+  t.verbose = true
+end
+
+
 desc 'Generate documentation for the loopy_workling plugin.'
 Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'

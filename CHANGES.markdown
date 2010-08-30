@@ -1,3 +1,9 @@
+Version 0.4.8, 07.05.2009
+- implemented XMPP listener (experimental)
+- implemented method for explicitly naming queues, this is useful in conjunction with the XMPP listener
+- rewrote the workling_client script, now allows specifying configuration options on the command line. Makes it easier to manage workling instances in production, and allows running worklings for multiple apps on one machine
+- integrated support for custom exception notifications
+
 Version 0.4.2.3, 31.01.2009
 - introduced Workling.raises_exceptions. by default, this is true in test and development to help with bug tracking. 
 - added :threaded as the default spawn runner for test and development. helps problem tracing. 

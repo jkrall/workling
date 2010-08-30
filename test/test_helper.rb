@@ -3,45 +3,32 @@ plugin_root = File.join plugin_test, '..'
 plugin_lib = File.join plugin_root, 'lib'
 
 require 'rubygems'
-require 'active_support'
+#require 'active_support'
+
+gem 'activerecord'
 require 'active_record'
+
 require 'test/spec'
 require 'mocha'
+begin; require 'redgreen'; rescue; end
 
 $:.unshift plugin_lib, plugin_test
 
-RAILS_ENV = "test"
-RAILS_ROOT = File.dirname(__FILE__) + "/.." # fake the rails root directory.
-RAILS_DEFAULT_LOGGER = Logger.new(STDOUT)
-RAILS_DEFAULT_LOGGER.level = Logger::WARN
+unless defined?(RAILS_ENV)
+  RAILS_ENV = "test"
+  RAILS_ROOT = File.dirname(__FILE__) + "/.." # fake the rails root directory.
+  RAILS_DEFAULT_LOGGER = ActiveSupport::BufferedLogger.new(File.dirname(__FILE__) + "/../test.log")
+end
 
 require "mocks/spawn"
 require "mocks/logger"
-require "workling"
-require "workling/base"
+require "mocks/rude_queue"
 
-Workling.try_load_a_memcache_client
+require File.join(File.dirname(__FILE__), "../lib/workling")
 
-require "workling/discovery"
-require "workling/routing/class_and_method_routing"
-require "workling/remote/invokers/basic_poller"
-require "workling/remote/invokers/threaded_poller"
-require "workling/remote/invokers/eventmachine_subscriber"
-require "workling/remote"
-require "workling/remote/runners/not_remote_runner"
-require "workling/remote/runners/spawn_runner"
-require "workling/remote/runners/starling_runner"
-require "workling/remote/runners/client_runner"
-require "workling/remote/runners/backgroundjob_runner"
-require "workling/return/store/memory_return_store"
-require "workling/return/store/starling_return_store"
-require "mocks/client"
-require "clients/memory_queue_client"
-require "runners/thread_runner"
 
 # worklings are in here.
-Workling.load_path = ["#{ plugin_root }/test/workers"]
-Workling::Return::Store.instance = Workling::Return::Store::MemoryReturnStore.new
+Workling.load_path = ["#{ plugin_root }/test/workers/**/*.rb"]
 Workling::Discovery.discover!
 
 # make this behave like production code
