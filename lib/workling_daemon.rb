@@ -103,7 +103,7 @@ class WorklingDaemon
     begin
       poller.listen
     ensure
-      puts '** No Worklings found.' if Workling::Discovery.discovered.empty?
+      puts '** No Worklings found.' if Workling::Discovery.discovered_workers.empty?
       puts '** Exiting'
     end
   end
