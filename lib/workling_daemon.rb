@@ -75,6 +75,7 @@ class WorklingDaemon
   end
 
   def self.boot_with(options)
+    ENV['WORKLING_DAEMON'] = '1'
     if options[:no_rails]
       # if rails is not booted we need to pull in the workling requires manually
       require File.join(File.dirname(__FILE__), "workling")
