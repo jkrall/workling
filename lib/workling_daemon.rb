@@ -28,6 +28,7 @@ class WorklingDaemon
       opts.on('-a', '--app-name APP_NAME', String,"specify the process name") { |v| options[:app_name] = v }
       opts.on('-d', '--dir DIR', String, "the directory to run in") { |v| options[:dir] = v }
       opts.on('-m', '--monitor',"specify the process name") { |v| options[:monitor] = true }
+      opts.on('-M', '--multiple',"allow multiple workers") { |v| options[:multiple] = true }
       opts.on('-t', '--ontop') { |k, v| pass_through << v  }
     end
     opts.parse!(partition_options(args).first)
