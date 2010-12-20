@@ -3,10 +3,12 @@ require 'rubygems'
 require 'daemons'
 require File.join(File.dirname(__FILE__), '../lib/workling_daemon')
 
+rails_root = File.exists?('./workling.gemspec') ? File.join(Dir.pwd, '../../../') : Dir.pwd
+
 daemon_options = {
   :app_name   => "workling",
   :dir_mode   => :normal,
-  :dir        => File.join(Dir.pwd, 'log'),
+  :dir        => File.join(rails_root, 'log'),
   :log_output => true,
   :multiple   => false,
   :backtrace  => true,
@@ -17,7 +19,7 @@ workling_options = {
   :client_class => "memcache_queue",
   :invoker_class => "threaded_poller",
   :routing_class => "class_and_method",
-  :rails_root => Dir.pwd,
+  :rails_root => rails_root,
   :load_path => ['app/workers/**/*.rb', 'vendor/**/**/app/workers/*.rb'],
   :rails_env => (ENV['RAILS_ENV'] || "development").dup,
   :no_rails => false
