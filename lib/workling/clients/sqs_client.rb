@@ -1,6 +1,3 @@
-require 'json'
-require 'right_aws'
-
 #
 #  An SQS client
 #
@@ -23,10 +20,20 @@ require 'right_aws'
 #
 #     # The SQS visibility timeout for retrieved messages. Defaults to 30 seconds.
 #     visibility_timeout: 15
-#   
+#
 module Workling
   module Clients
     class SqsClient < Workling::Clients::BrokerBase
+
+      def self.installed?
+        require 'json' rescue false
+        require 'right_aws' rescue false
+      end
+
+      def self.load
+        require 'json'
+        require 'right_aws'
+      end
 
       unless defined?(AWS_MAX_QUEUE_NAME)
         AWS_MAX_QUEUE_NAME = 80
@@ -37,13 +44,13 @@ module Workling
         DEFAULT_VISIBILITY_TIMEOUT = 30
         DEFAULT_VISIBILITY_RESERVE = 10
       end
-      
+
       # Mainly exposed for testing purposes
       attr_reader :sqs_options
       attr_reader :messages_per_req
       attr_reader :visibility_timeout
-      
-      # Starts the client. 
+
+      # Starts the client.
       def connect
         @sqs_options = Workling.config[:sqs_options]
 
@@ -52,12 +59,12 @@ module Workling
                @sqs_options.include?('aws_secret_access_key'))
           raise WorklingError, 'Unable to start SqsClient due to missing SQS options'
         end
-        
+
         # Optional settings
         @messages_per_req = @sqs_options['messages_per_req'] || DEFAULT_MESSAGES_PER_REQ
         @visibility_timeout = @sqs_options['visibility_timeout'] || DEFAULT_VISIBILITY_TIMEOUT
         @visibility_reserve = @sqs_options['visibility_reserve'] || DEFAULT_VISIBILITY_RESERVE
-        
+
         begin
           @sqs = RightAws::SqsGen2.new(
             @sqs_options['aws_access_key_id'],
@@ -67,13 +74,13 @@ module Workling
           raise WorklingError, "Unable to connect to SQS. Error: #{e}"
         end
       end
-      
+
       # No need for explicit closing, since there is no persistent
       # connection to SQS.
       def close
         true
       end
-      
+
       # Retrieve work.
       def retrieve(key)
         begin
@@ -105,13 +112,13 @@ module Workling
               # Need to wrap in HashWithIndifferentAccess, as JSON serialization
               # loses symbol keys.
               parsed_msg = HashWithIndifferentAccess.new(JSON.parse(msg.body))
-            
+
               # Delete the msg from SQS, so we don't re-retrieve it after the
               # visibility timeout. Ideally we would defer deleting a msg until
               # after Workling has successfully processed it, but it currently
               # doesn't provide the necessary hooks for this.
               msg.delete
-            
+
               parsed_msg
             end
           end
@@ -119,7 +126,7 @@ module Workling
         rescue => e
           logger.error "Error retrieving msg for key: #{key}; Error: #{e}\n#{e.backtrace.join("\n")}"
         end
-        
+
       end
 
       # Request work.
@@ -131,14 +138,14 @@ module Workling
           raise WorklingError, "Error sending msg for key: #{key}, value: #{value.inspect}; Error: #{e}"
         end
       end
-      
+
       # Returns the queue that corresponds to the specified key. Creates the
       # queue if it doesn't exist yet.
       def queue_for_key(key)
         # Use thread local for storing queues, for the same reason as for buffers
         Thread.current["queue_#{key}"] ||= @sqs.queue(queue_name(key), true, @visibility_timeout)
       end
-      
+
       # Returns the queue name for the specified key. The name consists of an
       # optional prefix, followed by the environment and the key itself. Note
       # that with a long worker class / method name, the name could exceed the
@@ -148,13 +155,13 @@ module Workling
       def queue_name(key)
         "#{@sqs_options['prefix'] || ''}#{env}_#{key}"[0, AWS_MAX_QUEUE_NAME]
       end
-      
+
       private
-      
+
       def logger
         Rails.logger
       end
-      
+
       def env
         Rails.env
       end
